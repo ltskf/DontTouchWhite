@@ -51,9 +51,33 @@ void draw() {
 	setfillcolor(BLACK);
 	for (int i = 0; i < 4; ++i) {
 		int x = flag[i] * GRID_W;
-		int y = flag[i] * GRID_H + TITLE;
+		int y = i * GRID_H + TITLE;
 
 		solidrectangle(x, y, x + GRID_W, y + GRID_H);
+	}
+}
+
+// 处理鼠标点击
+void mouseMsg(ExMessage* msg) {
+	if (startTime == 0) {
+		startTime = clock();
+	}
+
+	// 判断方块
+	int x = flag[3] * GRID_W;
+	int y = 3 * GRID_H + TITLE;
+
+	// 点中了最后一个黑方块
+	if (msg->x >= x && msg->x <= x + GRID_W &&
+		msg->y >= y && msg->y <= y + GRID_H) {
+		for (int i = 3; i > 0; --i) {
+			flag[i] = flag[i - 1];
+		}
+		flag[0] = rand() % 4;
+		score++;
+	}
+	else {
+		isOver = true;
 	}
 }
 
@@ -68,21 +92,37 @@ int main() {
 	setbkcolor(WHITE);
 	cleardevice();
 	init();
-	draw();
 
 	// 开启双缓冲绘图避免卡顿
 	BeginBatchDraw();
 
+	// 鼠标信息
+	ExMessage em;
+
 	// 游戏主循环
 	while (true) {
+		// 清屏
+		cleardevice();
+
 		// 游戏绘制
-
-		// 用户输入
-
-		// 判断游戏是否结束
+		draw();
 
 		// 游戏刷新
 		FlushBatchDraw();
+		
+		// 用户输入
+		if (peekmessage(&em, EX_MOUSE)) {
+			// 鼠标左键点击
+			if (em.message == WM_LBUTTONDOWN) {
+				mouseMsg(&em);
+			}
+		}
+
+		// 判断游戏是否结束
+		if (isOver) {
+			MessageBox(GetHWnd(), "游戏结束", "提示", MB_OK);
+			break;
+		}
 	}
 
 	// 关闭双缓冲绘图
